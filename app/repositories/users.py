@@ -46,5 +46,5 @@ class UsersOrmRepo:
             new_user (User): Данные нового пользователя.
         """
         self._session.add(new_user)
-        self._session.commit()
-        self._session.refresh()
+        await self._session.commit()
+        await self._session.refresh()
