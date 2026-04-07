@@ -4,7 +4,10 @@ from typing import Any
 from jose import jwt
 from passlib.context import CryptContext
 
+from app.core.config import settings
 
+
+token_ttl = timedelta(minutes=settings.access_token_expire_minutes)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -45,22 +48,14 @@ def verify_password(plain_text_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_text_password, hashed_password)
 
 
-def create_access_token(
-    subject: str,
-    role: str,
-    secret_key: str,
-    algorithm: str,
-    token_ttl: timedelta,
-) -> str:
+def create_access_token(subject: str, role: str) -> str:
     """
-    Генерирует токен доступа в формате JWT.
+    Генерирует токен доступа в формате JWT. Секретный ключ для подписи токена,
+    алгоритм формирования подписи токена и время жизни токена берутся из настроек.
 
     Args:
         subject (str): Субъект, которому принадлежит токен (например, идентификатор пользователя).
         role (str): Роль субъекта (например, роль пользователя - `admin`).
-        secret_key (str): Секретный ключ для подписи токена.
-        algorithm (str): Алгоритм формирования подписи токена.
-        token_ttl (timedelta): Время жизни токена.
 
     Returns:
         str: Токен доступа в виде JWT строки.
@@ -76,19 +71,18 @@ def create_access_token(
         "exp": expires_at,
     }
 
-    return jwt.encode(claims, secret_key, algorithm)
+    return jwt.encode(claims, settings.jwt_secret, settings.jwt_alg)
 
 
-def decode_token(token: str, secret_key: str, algorithm: str) -> dict[str, Any]:
+def decode_token(token: str) -> dict[str, Any]:
     """
     Проверяет JWT токен и возвращает словарь полей, содержащихся в токене, если проверка успешна.
+    Секретный ключ для проверки токена и алгоритм формирования подписи токена берутся из настроек.
 
     Args:
         token (str): JWT токен.
-        secret_key (str): Секретный ключ, который использовался для подписи токена.
-        algorithm (str): Алгоритм формирования подписи токена.
 
     Returns:
         dict[str, Any]: Словарь полей, указанных в токене.
     """
-    return jwt.decode(token, secret_key, algorithm)
+    return jwt.decode(token, settings.jwt_secret, settings.jwt_alg)
