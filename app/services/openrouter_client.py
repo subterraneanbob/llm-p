@@ -1,7 +1,18 @@
 import httpx
 
+from pydantic import BaseModel
+
 from app.core.config import settings
 from app.core.errors import OpenRouterError
+
+
+class OpenRouterMessage(BaseModel):
+    """
+    Сообщение одной из категорий: сообщение пользователя, ответ LLM, системный промпт.
+    """
+
+    role: str
+    content: str
 
 
 class OpenRouterClient:
@@ -29,27 +40,70 @@ class OpenRouterClient:
             },
         )
 
-    async def make_chat_completion(self, payload: dict) -> dict:
+    def _parse_message(self, json_response) -> OpenRouterMessage:
         """
-        Получает ответ модели на сообщение пользователя с учётом истории сообщений.
+        Разбирает ответ от OpenRouter API и возвращает сообщение LLM.
 
         Args:
-            payload (dict): Словарь, который содержит название модели и
-            историю сообщений между пользователем и моделью.
+            json_response: Ответ от OpenRouter API (ожидается словарь).
 
         Raises:
-            OpenRouterError: OpenRouter API вернул ошибку или не удалось подключиться к сервису.
+            OpenRouterError: Если из полученного ответа не удалось извлечь сообщение.
 
         Returns:
-            dict: Ответ от сервиса в виде словаря.
+            OpenRouterMessage: Ответ, полученный от LLM.
         """
+        try:
+            message = json_response["choices"][0]["message"]
+            return OpenRouterMessage(
+                role=message["role"],
+                content=message["content"],
+            )
+
+        except (KeyError, IndexError, TypeError) as ex:
+            raise OpenRouterError(
+                "Malformed response received from OpenRouter.ai service"
+            ) from ex
+
+    async def make_chat_completion(
+        self,
+        messages: list[OpenRouterMessage],
+        model: str,
+        temperature: float,
+    ) -> OpenRouterMessage:
+        """
+        Получает ответ LLM с учётом контекста (истории сообщений и нового запроса пользователя).
+
+        Args:
+            messages (list[OpenRouterMessage]): Список сообщений, формирующих контекст.
+                Например, системная инструкция, затем история взаимодействия пользователя и LLM,
+                затем новое пользовательское сообщение.
+            model (str): Название LLM, от которой нужно получить ответ.
+            temperature (float): Степень "креативности" модели. Чем меньше значение, тем более предсказуем
+                результат работы LLM. При значении равном 0, модель всегда выдаёт один и тот же результат
+                при одинаковом контексте.
+
+        Raises:
+            OpenRouterError: Если не удалось подключиться к OpenRouter.ai, API вернул ошибку
+                или ответ в формате, который не удалось разобрать.
+
+        Returns:
+            OpenRouterMessage: Ответ, полученный от LLM.
+        """
+
+        payload = {
+            "messages": messages,
+            "model": model,
+            "temperature": temperature,
+        }
+
         try:
             response = await self._http_client.post("/chat/completions", json=payload)
             response.raise_for_status()
 
-            return response.json()
-        except httpx.HTTPError:
-            raise OpenRouterError("Unable to contact OpenRouter.ai service")
+            return self._parse_message(response.json())
+        except httpx.HTTPError as ex:
+            raise OpenRouterError("Unable to contact OpenRouter.ai service") from ex
 
 
 client = OpenRouterClient(
