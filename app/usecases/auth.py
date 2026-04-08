@@ -12,7 +12,7 @@ class AuthUseCase:
     def __init__(self, users_repo: UsersOrmRepo):
         self._users_repo = users_repo
 
-    async def register(self, email: str, plain_text_password: str):
+    async def register(self, email: str, plain_text_password: str) -> User:
         """
         Регистрирует нового пользователя.
 
@@ -22,6 +22,9 @@ class AuthUseCase:
 
         Raises:
             UserConflictError: Если пользователь с указанным e-mail уже существует.
+
+        Returns:
+            User: Профиль нового пользователя.
         """
         existing_user = await self._users_repo.get_user_by_email(email)
 
@@ -35,6 +38,8 @@ class AuthUseCase:
         )
 
         await self._users_repo.create(new_user)
+
+        return new_user
 
     async def login(self, email: str, plain_text_password: str) -> str:
         """
