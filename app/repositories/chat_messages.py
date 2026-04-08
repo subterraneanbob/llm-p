@@ -61,4 +61,4 @@ class ChatMessagesOrmRepo:
         statement = delete(ChatMessage).where(ChatMessage.user_id == user_id)
 
         async with self._session.begin():
-            self._session.execute(statement)
+            await self._session.execute(statement)
