@@ -2,7 +2,6 @@ import httpx
 
 from pydantic import BaseModel
 
-from app.core.config import settings
 from app.core.errors import OpenRouterError
 
 
@@ -105,10 +104,8 @@ class OpenRouterClient:
         except httpx.HTTPError as ex:
             raise OpenRouterError("Unable to contact OpenRouter.ai service") from ex
 
-
-client = OpenRouterClient(
-    settings.openrouter_base_url,
-    settings.openrouter_api_key,
-    settings.openrouter_app_name,
-    settings.openrouter_site_url,
-)
+    async def close(self):
+        """
+        Закрывает клиент и освобождает используемые ресурсы.
+        """
+        await self._http_client.aclose()
