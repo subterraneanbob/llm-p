@@ -34,13 +34,14 @@ def hash_password(plain_text_password: str) -> str:
     return pwd_context.hash(plain_text_password)
 
 
-def verify_password(plain_text_password: str, hashed_password: str) -> bool:
+def verify_password(plain_text_password: str, hashed_password: str | None) -> bool:
     """
     Проверяет, что предоставленный в открытом виде пароль соответствует хешу.
 
     Args:
         plain_text_password (str): Пароль в открытом виде
-        hashed_password (str): Хеш пароля
+        hashed_password (str | None): Хеш пароля. Если указать значение None,
+            то функция всегда возвращает False.
 
     Returns:
         bool: True, если пароль соответсвует хешу, иначе False.
