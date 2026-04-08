@@ -9,7 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.security import decode_token
-from app.db.session import AsyncSessionLocal
+from app.db.base import Base
+from app.db.session import AsyncSessionLocal, engine
 from app.repositories.chat_messages import ChatMessagesOrmRepo
 from app.repositories.users import UsersOrmRepo
 from app.services.openrouter_client import OpenRouterClient
@@ -29,8 +30,12 @@ async def lifespan(_: FastAPI):
         settings.openrouter_site_url,
     )
 
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+
     yield {"openrouter_client": openrouter_client}
 
+    await engine.dispose()
     await openrouter_client.close()
 
 
