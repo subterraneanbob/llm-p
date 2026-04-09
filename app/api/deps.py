@@ -23,6 +23,14 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    Создаёт экземпляр `OpenRouterClient` и создаёт таблицы базы данных.
+    Высвобождает ресурсы `OpenRouterClient` и `AsyncEngine` при завершении
+    работы приложения.
+
+    Args:
+        app (FastAPI): Приложение FastAPI.
+    """
     openrouter_client = OpenRouterClient(
         settings.openrouter_base_url,
         settings.openrouter_api_key,
@@ -76,7 +84,22 @@ def get_chat_usecase(
 
 
 def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
-    def raise_unauthorized(detail: str, cause: Exception = None):
+    """
+    Получает идентификатор текущего пользователя из токена доступа.
+
+    Args:
+        token (str, optional): JWT токен, который предоставлен клиентом.
+
+    RaisesRaises:
+        HTTPException: Если из токена доступа не удалось получить идентификатор пользователя.
+
+    Returns:
+        int: Уникальный идентификатор пользователя.
+    """
+
+    def raise_unauthorized(
+        detail: str = "Invalid access token.", cause: Exception = None
+    ):
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED, detail, {"WWW-Authenticate": "Bearer"}
         ) from cause
@@ -88,11 +111,11 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
         subject = payload.get("sub")
 
         if token_type != "access" or not subject:
-            raise_unauthorized("Invalid access token.")
+            raise_unauthorized()
 
         return int(subject)
 
     except ExpiredSignatureError as ex:
         raise_unauthorized("Access token expired.", ex)
     except (JWTError, ValueError) as ex:
-        raise_unauthorized("Invalid access token.", ex)
+        raise_unauthorized(cause=ex)
