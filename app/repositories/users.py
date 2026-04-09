@@ -47,4 +47,4 @@ class UsersOrmRepo:
         """
         self._session.add(new_user)
         await self._session.commit()
-        await self._session.refresh()
+        await self._session.refresh(new_user)

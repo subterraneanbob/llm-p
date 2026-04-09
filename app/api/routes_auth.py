@@ -18,7 +18,7 @@ async def register(
     data: RegisterRequest, auth: AuthUseCase = Depends(get_auth_usecase)
 ):
     try:
-        return await auth.register(data.email, data.password)
+        return await auth.register(data.email, data.password.get_secret_value())
     except UserConflictError as ex:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=str(ex)
