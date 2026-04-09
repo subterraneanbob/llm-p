@@ -21,10 +21,10 @@ class ChatMessagesOrmRepo:
         """
         self._session.add(new_message)
         await self._session.commit()
-        await self._session.refresh()
+        await self._session.refresh(new_message)
 
     async def get_recent_messages(
-        self, user_id: int, messages_limit: int
+        self, user_id: int, messages_limit: int | None = None
     ) -> list[ChatMessage]:
         """
         Получает список последних сообщений пользователя с указанным идентификатором `user_id`.
@@ -33,7 +33,8 @@ class ChatMessagesOrmRepo:
 
         Args:
             user_id (int): Уникальный идентификатор пользователя.
-            messages_limit (int, optional): Максимальное количество сообщений.
+            messages_limit (int | None): Максимальное количество сообщений.
+                Количество не ограничивается, если параметр не указан.
 
         Returns:
             list[ChatMessage]: Список последних сообщений пользователя.
@@ -42,8 +43,11 @@ class ChatMessagesOrmRepo:
             select(ChatMessage)
             .where(ChatMessage.user_id == user_id)
             .order_by(desc(ChatMessage.id))
-            .limit(messages_limit)
         )
+
+        if messages_limit is not None:
+            statement = statement.limit(messages_limit)
+
         result = await self._session.scalars(statement)
 
         recent_messages = list(result.all())

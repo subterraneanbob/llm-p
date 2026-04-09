@@ -77,3 +77,24 @@ class ChatUseCase:
         )
 
         return llm_response.content
+
+    async def get_history(self, user_id: int) -> list[ChatMessage]:
+        """
+        Получает историю сообщений для пользователя с указанным идентификатором `user_id`.
+
+        Args:
+            user_id (int): Уникальный идентификатор пользователя.
+
+        Returns:
+            list[ChatMessage]: Список сообщений пользователя.
+        """
+        return await self._chat_messages_repo.get_recent_messages(user_id)
+
+    async def delete_history(self, user_id: int):
+        """
+        Удаляет все сообщения пользователя с указанным идентификатором `user_id`.
+
+        Args:
+            user_id (int): Уникальный идентификатор пользователя.
+        """
+        await self._chat_messages_repo.delete_all_messages(user_id)
