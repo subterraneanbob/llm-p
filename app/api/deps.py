@@ -22,18 +22,19 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(app: FastAPI):
     openrouter_client = OpenRouterClient(
         settings.openrouter_base_url,
         settings.openrouter_api_key,
         settings.openrouter_app_name,
         settings.openrouter_site_url,
     )
+    app.state.openrouter_client = openrouter_client
 
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
 
-    yield {"openrouter_client": openrouter_client}
+    yield
 
     await engine.dispose()
     await openrouter_client.close()
