@@ -8,7 +8,7 @@ from app.schemas.user import UserPublic
 from app.usecases.auth import AuthUseCase
 
 
-router = APIRouter(prefix="/auth")
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post(
