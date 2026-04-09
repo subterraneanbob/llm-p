@@ -1,11 +1,14 @@
-import httpx
+from typing import TypedDict
 
-from pydantic import BaseModel
+import httpx
 
 from app.core.errors import OpenRouterError
 
 
-class OpenRouterMessage(BaseModel):
+HTTP_CLIENT_TIMEOUT = 5 * 60
+
+
+class OpenRouterMessage(TypedDict):
     """
     Сообщение одной из категорий: сообщение пользователя, ответ LLM, системный промпт.
     """
@@ -37,9 +40,10 @@ class OpenRouterClient:
                 "HTTP-Referer": site_url,
                 "X-Title": app_name,
             },
+            timeout=HTTP_CLIENT_TIMEOUT,
         )
 
-    def _parse_message(self, json_response) -> OpenRouterMessage:
+    def _parse_message(self, json_response: dict) -> str:
         """
         Разбирает ответ от OpenRouter API и возвращает сообщение LLM.
 
@@ -50,14 +54,11 @@ class OpenRouterClient:
             OpenRouterError: Если из полученного ответа не удалось извлечь сообщение.
 
         Returns:
-            OpenRouterMessage: Ответ, полученный от LLM.
+            str: Ответ, полученный от LLM.
         """
         try:
             message = json_response["choices"][0]["message"]
-            return OpenRouterMessage(
-                role=message["role"],
-                content=message["content"],
-            )
+            return message.get("content", "")
 
         except (KeyError, IndexError, TypeError) as ex:
             raise OpenRouterError(
@@ -69,7 +70,7 @@ class OpenRouterClient:
         messages: list[OpenRouterMessage],
         model: str,
         temperature: float,
-    ) -> OpenRouterMessage:
+    ) -> str:
         """
         Получает ответ LLM с учётом контекста (истории сообщений и нового запроса пользователя).
 
@@ -87,7 +88,7 @@ class OpenRouterClient:
                 или ответ в формате, который не удалось разобрать.
 
         Returns:
-            OpenRouterMessage: Ответ, полученный от LLM.
+            str: Ответ, полученный от LLM.
         """
 
         payload = {

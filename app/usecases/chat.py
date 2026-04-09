@@ -61,6 +61,11 @@ class ChatUseCase:
         user_prompt = OpenRouterMessage(role="user", content=prompt)
         messages.append(user_prompt)
 
+        # Сохраняем сообщение пользователя
+        await self._chat_messages_repo.create(
+            ChatMessage(user_id=user_id, **user_prompt)
+        )
+
         # Получаем ответ от LLM
         llm_response = await self._openrouter_client.make_chat_completion(
             messages,
@@ -68,15 +73,12 @@ class ChatUseCase:
             temperature,
         )
 
-        # Сохраняем сообщение пользователя и ответ LLM
+        # Сохраняем ответ LLM
         await self._chat_messages_repo.create(
-            ChatMessage(user_id=user_id, **user_prompt)
-        )
-        await self._chat_messages_repo.create(
-            ChatMessage(user_id=user_id, role="assistant", content=llm_response.content)
+            ChatMessage(user_id=user_id, role="assistant", content=llm_response)
         )
 
-        return llm_response.content
+        return llm_response
 
     async def get_history(self, user_id: int) -> list[ChatMessage]:
         """
