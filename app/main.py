@@ -9,6 +9,6 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(routes_auth.router)
 
 
-@app.get("/health")
+@app.get("/health", tags=["system"])
 async def health():
     return {"status": "OK", "env": settings.env}
