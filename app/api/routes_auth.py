@@ -17,6 +17,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def register(
     data: RegisterRequest, auth: AuthUseCase = Depends(get_auth_usecase)
 ):
+    """
+    Регистрирует нового пользователя.
+    """
     try:
         return await auth.register(data.email, data.password.get_secret_value())
     except UserConflictError as ex:
@@ -30,6 +33,9 @@ async def login(
     data: OAuth2PasswordRequestForm = Depends(),
     auth: AuthUseCase = Depends(get_auth_usecase),
 ):
+    """
+    Авторизует существующего пользователя.
+    """
     try:
         token = await auth.login(data.username, data.password)
         return TokenResponse(access_token=token)
@@ -46,6 +52,9 @@ async def me(
     user_id: int = Depends(get_current_user_id),
     auth: AuthUseCase = Depends(get_auth_usecase),
 ):
+    """
+    Получает профиль текущего пользователя.
+    """
     try:
         return await auth.get_user_profile(user_id)
     except UserNotFound as ex:
