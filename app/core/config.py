@@ -2,8 +2,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "llm-p"
-    env: str = "local"
+    app_name: str
+    env: str
 
     jwt_secret: str
     jwt_alg: str
