@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserPublic(BaseModel):
@@ -6,8 +6,8 @@ class UserPublic(BaseModel):
     Публичная схема пользователя, которая используется в ответах.
     """
 
-    id: int
-    email: EmailStr
-    role: str
+    id: int = Field(description="Идентификатор пользователя")
+    email: EmailStr = Field(description="e-mail пользователя")
+    role: str = Field(description="Роль пользователя")
 
     model_config = {"from_attributes": True}
