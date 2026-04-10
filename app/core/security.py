@@ -1,3 +1,4 @@
+import logging
 import time
 from datetime import timedelta
 from typing import Any
@@ -9,6 +10,11 @@ from app.core.config import settings
 
 token_ttl = timedelta(minutes=settings.access_token_expire_minutes)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Подавляем предупреждение passlib при использовании bcrypt >= 4.1.1:
+# AttributeError: module 'bcrypt' has no attribute '__about__'
+# https://github.com/pyca/bcrypt/issues/684
+logging.getLogger("passlib").setLevel(logging.ERROR)
 
 
 def _now_seconds() -> int:
