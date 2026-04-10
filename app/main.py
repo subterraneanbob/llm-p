@@ -5,7 +5,14 @@ from app.api.deps import lifespan
 from app.core.config import settings
 
 
-app = FastAPI(title=settings.app_name, lifespan=lifespan)
+app = FastAPI(
+    title=settings.app_name,
+    description=(
+        "Серверное приложение на FastApi, предоставляющее API для "
+        "взаимодействия с LLM через сервис OpenRouter.ai."
+    ),
+    lifespan=lifespan,
+)
 app.include_router(routes_auth.router)
 app.include_router(routes_chat.router)
 
