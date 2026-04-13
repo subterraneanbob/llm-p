@@ -101,3 +101,57 @@ INFO:     Application startup complete.
 3. Для отправки запроса к LLM используем `POST /chat`. Указываем текст запроса к LLM (prompt). Опционально, можно указать системную инструкцию (system), количество сообщений (max_history), которые нужно включить в запрос и "температуру" (temperature, степень креативности модели). Этот метод можно использовать столько раз, сколько требуется для "общения" с языковой моделью.
 4. Для получения всей истории переписки пользователя и LLM используем `GET /chat/history`.
 5. Для удаления истории пользователя применяется `DELETE /chat/history`.
+
+## Демонстрация работы (скриншоты)
+
+Для просмотра скриншота кликните на раздел.
+
+<details>
+  <summary>Регистрация пользователя</summary>
+
+  ![Регистрация пользователя](./assets/01-auth-register.png)
+</details>
+
+<details>
+  <summary>Логин и получение JWT</summary>
+
+  ![Логин и получение JWT](./assets/02-auth-login.png)
+</details>
+
+<details>
+  <summary>Авторизация через Swagger</summary>
+
+  ![Авторизация через Swagger](./assets/03-auth-authorize.png)
+</details>
+
+<details>
+  <summary>Профиль пользователя</summary>
+
+  ![Профиль пользователя](./assets/04-auth-me.png)
+</details>
+
+<details>
+  <summary>Общение с LLM</summary>
+
+  ![Вызов /chat #1](./assets/05-chat.png)
+  ![Вызов /chat #2](./assets/06-chat.png)
+  ![Вызов /chat #3](./assets/07-chat.png)
+</details>
+
+<details>
+  <summary>Получение истории сообщений</summary>
+
+  ![Получение истории сообщений](./assets/08-chat-history.png)
+</details>
+
+<details>
+  <summary>Удаление истории сообщений</summary>
+
+  ![Удаление истории сообщений](./assets/09-chat-delete.png)
+</details>
+
+<details>
+  <summary>Получение статуса системы</summary>
+
+  ![Получение статуса системы](./assets/10-health.png)
+</details>
